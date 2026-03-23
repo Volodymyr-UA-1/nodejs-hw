@@ -28,5 +28,5 @@ app.use(errorHandler);
 await connectMongoDB();
 
 app.listen(PORT, () => {
-  console.log(`✅ MongoDB connection established successfully`);
+  console.log(`Server is running on port ${PORT}`);
 });
