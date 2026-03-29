@@ -1,23 +1,25 @@
 import { Schema } from 'mongoose';
 import { model } from 'mongoose';
+import { TAGS } from '../constants/tags.js';
+
 
 const noteSchema = new Schema(
   {
-
     title: {
       type: String,
       required: true,
-      trim: true, // прибирає пробіли на початку та в кінці
-  },
+      trim: true,
+    },
     content: {
       type: String,
       required: false,
-      default: '', // за замовчуванням порожній рядок
+      default: '',
       trim: true,
     },
     tag: {
       type: String,
-      enum: ['Work', 'Personal', 'Meeting', 'Shopping', 'Ideas', 'Travel', 'Finance', 'Health', 'Important', 'Todo'],
+      // Використовуємо константу замість масиву
+      enum: TAGS,
       default: 'Todo',
     },
   },
@@ -26,4 +28,9 @@ const noteSchema = new Schema(
     versionKey: false,
   }
 );
+
+// ВАЖЛИВО: Додаємо текстовий індекс для роботи фільтрації за параметром 'search'
+// Це дозволить MongoDB шукати слова одночасно в заголовку та змісті
+noteSchema.index({ title: 'text', content: 'text' });
+
 export const Note = model('note', noteSchema);
