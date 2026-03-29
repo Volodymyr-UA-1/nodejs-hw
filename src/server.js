@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
+import { errors } from 'celebrate';
 import { connectMongoDB }  from './db/connectMongoDB.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logger } from './middleware/logger.js';
@@ -17,6 +18,9 @@ app.use(cors());
 
 //маршрут, який буде повертати всі нотатки
 app.use(notesRoutes);
+
+//ОБРОБКА ПОМИЛОК CELEBRATE
+app.use(errors());
 
 //статус 404
 app.use(notFoundHandler);
