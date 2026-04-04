@@ -1,24 +1,33 @@
 import { Note } from '../models/note.js';
 import createHttpError from 'http-errors';
 
-//отримати  всі нотатки
+// CREATE NOTE
+export const createNote = async (req, res, next) => {
+  try {
+    const note = await Note.create({
+      ...req.body,
+      userId: req.user._id,
+    });
+
+    res.status(201).json(note);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET ALL NOTES (тільки користувача)
 export const getAllNotes = async (req, res, next) => {
   try {
-    // 1. Отримуємо всі можливі параметри з query
-    const {
-      tag,
-      search,
-      page = 1,
-      perPage = 10
-    } = req.query;
+    const { tag, search, page = 1, perPage = 10 } = req.query;
 
-    // Перетворюємо рядки у числа
-    const limit = parseInt(perPage);
-    const skip = (parseInt(page) - 1) * limit;
+    const limit = Number(perPage);
+    const skip = (Number(page) - 1) * limit;
 
-    const filter = {};
+    // 🔥 ключовий момент — фільтр по userId
+    const filter = {
+      userId: req.user._id,
+    };
 
-    // 2. Логіка фільтрації (залишається з попереднього завдання)
     if (tag) {
       filter.tag = tag;
     }
@@ -27,73 +36,87 @@ export const getAllNotes = async (req, res, next) => {
       filter.$text = { $search: search };
     }
 
-    // 3. Виконуємо два запити паралельно:
-    // один для самих нотаток з пагінацією, інший для підрахунку загальної кількості
     const [notes, totalNotes] = await Promise.all([
       Note.find(filter)
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 }), // опціонально: нові зверху
+        .sort({ createdAt: -1 }),
+
       Note.countDocuments(filter),
     ]);
 
-    // 4. Розраховуємо загальну кількість сторінок
-    const totalPages = Math.ceil(totalNotes / limit);
-
-    // 5. Формуємо відповідь згідно з ТЗ
     res.status(200).json({
-      page: parseInt(page),
+      page: Number(page),
       perPage: limit,
       totalNotes,
-      totalPages,
+      totalPages: Math.ceil(totalNotes / limit),
       notes,
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
-//отримати нотатку за id
-export const getNoteById = async (req, res) => {
+// GET NOTE BY ID (тільки своя нотатка)
+export const getNoteById = async (req, res, next) => {
+  try {
     const { noteId } = req.params;
-    const note = await Note.findById(noteId);
-    if (!note) {
 
-        //Виклик throw new Error() передає управління нашій error middleware
-        // і припиняє виконання коду поточної функції.
-        throw createHttpError(404, 'Note not found');
-    }
-    res.status(200).json(note);
-};
-
-//створити нотатку
-export const createNote = async (req, res) => {
-    const note = await Note.create(req.body);
-    res.status(201).json(note);
-};
-
-//видалити нотатку
-export const deleteNote = async (req, res) => {
-    const { noteId } = req.params;
-    const note = await Note.findOneAndDelete({
-        _id: noteId,
+    const note = await Note.findOne({
+      _id: noteId,
+      userId: req.user._id,
     });
+
     if (!note) {
-        throw createHttpError(404, 'Note not Found');
+      throw createHttpError(404, 'Note not found');
     }
+
     res.status(200).json(note);
+  } catch (err) {
+    next(err);
+  }
 };
 
-//оновити нотатку
-export const updateNote = async (req, res) => {
+// UPDATE NOTE (тільки своя нотатка)
+export const updateNote = async (req, res, next) => {
+  try {
     const { noteId } = req.params;
+
     const note = await Note.findOneAndUpdate(
-        { _id: noteId },
-        req.body,
-        { returnDocument: 'after' },
+      {
+        _id: noteId,
+        userId: req.user._id,
+      },
+      req.body,
+      { new: true },
     );
+
     if (!note) {
-        throw createHttpError(404, 'Note not Found');
+      throw createHttpError(404, 'Note not found');
     }
+
     res.status(200).json(note);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE NOTE (тільки своя нотатка)
+export const deleteNote = async (req, res, next) => {
+  try {
+    const { noteId } = req.params;
+
+    const note = await Note.findOneAndDelete({
+      _id: noteId,
+      userId: req.user._id,
+    });
+
+    if (!note) {
+      throw createHttpError(404, 'Note not found');
+    }
+
+    res.status(200).json(note);
+  } catch (err) {
+    next(err);
+  }
 };

@@ -1,4 +1,4 @@
-import { Joi, Segments, celebrate } from 'celebrate';
+import { Joi, Segments} from 'celebrate';
 import { isValidObjectId } from 'mongoose';
 import { TAGS } from '../constants/tags.js';
 
@@ -10,30 +10,30 @@ const objectIdValidation = (value, helpers) => {
   return value;
 };
 
-export const getAllNotesSchema = celebrate({
+export const getAllNotesSchema = {
   [Segments.QUERY]: Joi.object().keys({
     page: Joi.number().integer().min(1).default(1),
     perPage: Joi.number().integer().min(5).max(20).default(10),
     tag: Joi.string().valid(...TAGS),
     search: Joi.string().allow(''),
   }),
-});
+};
 
-export const noteIdSchema = celebrate({
+export const noteIdSchema = {
   [Segments.PARAMS]: Joi.object().keys({
     noteId: Joi.string().custom(objectIdValidation).required(),
   }),
-});
+};
 
-export const createNoteSchema = celebrate({
+export const createNoteSchema = {
   [Segments.BODY]: Joi.object().keys({
     title: Joi.string().min(1).required(),
     content: Joi.string().allow(''),
     tag: Joi.string().valid(...TAGS),
   }),
-});
+};
 
-export const updateNoteSchema = celebrate({
+export const updateNoteSchema = {
   [Segments.PARAMS]: Joi.object().keys({
     noteId: Joi.string().custom(objectIdValidation).required(),
   }),
@@ -44,4 +44,4 @@ export const updateNoteSchema = celebrate({
       tag: Joi.string().valid(...TAGS),
     })
     .min(1), // Гарантує, що хоча б одне поле присутнє
-});
+};
