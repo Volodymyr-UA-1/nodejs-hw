@@ -8,12 +8,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Функція приймає ОДИН аргумент
 export async function saveFileToCloudinary(buffer) {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'avatars', // Назву папки можна залишити або змінити на вимогу ТЗ
+        folder: 'avatars',
+        resource_type: 'image',    // Додано
+        overwrite: true,           // Додано
+        unique_filename: true,     // Додано
+        use_filename: true,        // Додано
       },
       (err, result) => {
         if (err) return reject(err);
