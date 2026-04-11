@@ -1,17 +1,18 @@
 import multer from 'multer';
+import createHttpError from 'http-errors';
 
 export const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 2 * 1024 * 1024,
+    fileSize: 2 * 1024 * 1024, // 2MB
   },
   fileFilter: (req, file, cb) => {
-	  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-
-	  if (allowedTypes.includes(file.mimetype)) {
+    // ПЕРЕВІРКА: чи починається MIME-тип з "image/"
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
-	  } else {
-      cb(new Error('Only images allowed.'), false);
-	  }
+    } else {
+      // Краще повертати помилку через createHttpError для одноманітності
+      cb(createHttpError(400, 'Only images allowed.'), false);
+    }
   },
 });

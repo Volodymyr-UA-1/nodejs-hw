@@ -8,17 +8,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function saveFileToCloudinary(buffer, userId) {
+// Функція приймає ОДИН аргумент
+export async function saveFileToCloudinary(buffer) {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'notes-app/avatars',
-        resource_type: 'image',
-        public_id: `avatar_${userId}`,
-        overwrite: true,
-        unique_filename: false,
+        folder: 'avatars', // Назву папки можна залишити або змінити на вимогу ТЗ
       },
-      (err, result) => (err ? reject(err) : resolve(result)),
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      },
     );
 
     Readable.from(buffer).pipe(uploadStream);
